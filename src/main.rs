@@ -1,3 +1,6 @@
+#![feature(unboxed_closures)]
+#![feature(fn_traits)]
+
 use anyhow::*;
 use log::*;
 use timer::Timer;
@@ -7,6 +10,8 @@ use winit::{
 	*,
 };
 
+mod blit;
+mod simulation;
 mod state;
 mod timer;
 
@@ -16,16 +21,16 @@ fn main() -> Result<()> {
 	let event_loop = event_loop::EventLoop::new();
 	let window = window::WindowBuilder::new()
 		.with_title("physarum")
+		.with_inner_size(dpi::PhysicalSize::new(1920.0, 1080.0))
 		.build(&event_loop)?;
 
-	let state = pollster::block_on(state::State::new(&window))?;
+	let mut state = pollster::block_on(state::State::new(&window))?;
 
 	let mut timer = Timer::new();
 
 	event_loop.run(move |event, _, control| match event {
 		Event::RedrawRequested(window_id) if window_id == window.id() => {
-			timer.update();
-			match state.render() {
+			match state.render(timer.update()) {
 				Err(e) => {
 					error!("{:?}", e);
 					*control = ControlFlow::Exit;

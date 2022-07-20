@@ -17,17 +17,22 @@ impl Timer {
 		}
 	}
 
-	pub fn update(&mut self) {
-		self.accum_time += self.last_call.elapsed();
+	pub fn update(&mut self) -> f32 {
+		let delta_time = self.last_call.elapsed();
+
+		self.accum_time += delta_time;
 		self.last_call = Instant::now();
 		self.call_count += 1;
+
 		if self.accum_time > Duration::from_secs(1) {
 			debug!(
-				"{} fps",
-				self.call_count as f32 / self.accum_time.as_secs_f32() * 1000.0
+				"{:.0} fps",
+				self.call_count as f32 / self.accum_time.as_secs_f32()
 			);
 			self.accum_time = Duration::default();
 			self.call_count = 0;
 		}
+
+		delta_time.as_secs_f32()
 	}
 }
