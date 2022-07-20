@@ -80,16 +80,16 @@ impl State<'_> {
 		////////////////////////////////////////////////////////////////////////////////////////////
 
 		let config = simulation::Config {
-			num_agents: 50000,
+			num_agents: 100000,
 
-			move_speed:             75.0,
-			turn_speed:             50.0,
+			move_speed:             100.0,
+			turn_speed:             30.0,
 			sensor_angle:           PI / 4.0,
 			sensor_offset_distance: 15.0,
-			sensor_width:           1,
+			sensor_width:           2,
 
-			diffuse_rate: 50.0,
-			decay_rate:   0.7,
+			diffuse_rate: 40.0,
+			decay_rate:   0.6,
 
 			time:       0.0,
 			delta_time: 0.0,
