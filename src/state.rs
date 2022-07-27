@@ -17,6 +17,9 @@ use crate::{blit, simulation, simulation::Agent};
 // TODO: merge into create_pipeline, create_texture
 // TODO: resize
 // TODO: load shaders instead of rebuild
+// TODO: json + save this config + github config
+// TODO: music
+// TODO: modulo
 
 pub struct State<'a> {
 	surface: Surface,

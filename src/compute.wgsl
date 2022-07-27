@@ -94,9 +94,10 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
 		let random = hash(random);
 		position = clamp(position, vec2(0.0, 0.0), vec2(dimensions.x - 1.0, dimensions.y - 1.0));
 		angle = scale(random) * 2.0 * 3.14159;
+	} else {
+	    textureStore(texture, vec2<i32>(position) , vec4(1.0, 1.0, 1.0, 1.0));
 	}
 
     agents[id.x].position = position;
 	agents[id.x].angle = angle;
-    textureStore(texture, vec2<i32>(position) , vec4(1.0, 1.0, 1.0, 1.0));
 }

@@ -37,7 +37,7 @@ fn fs_main(@builtin(position) in: vec4<f32>) -> @location(0) vec4<f32> {
 	for (var offset_x = -1; offset_x <= 1; offset_x++) {
 		for (var offset_y = -1; offset_y <= 1; offset_y++) {
 		    let pos = clamp(in.xy + vec2(f32(offset_x), f32(offset_y)), vec2(0.0), vec2(dimensions.x - 1.0, dimensions.y - 1.0));
-		    //let pos = in.xy + vec2(f32(offset_x), f32(offset_y));
+		    // let pos = in.xy + vec2(f32(offset_x), f32(offset_y));
 			diffuse = diffuse + textureLoad(texture, vec2<i32>(pos), 0);
 		}
 	}

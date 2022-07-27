@@ -1,6 +1,3 @@
-#![feature(unboxed_closures)]
-#![feature(fn_traits)]
-
 use anyhow::*;
 use log::*;
 use timer::Timer;
@@ -22,6 +19,7 @@ fn main() -> Result<()> {
 	let window = window::WindowBuilder::new()
 		.with_title("physarum")
 		.with_inner_size(dpi::PhysicalSize::new(1920.0, 1080.0))
+		.with_fullscreen(Some(window::Fullscreen::Borderless(None)))
 		.build(&event_loop)?;
 
 	let mut state = pollster::block_on(state::State::new(&window))?;
@@ -34,17 +32,17 @@ fn main() -> Result<()> {
 				Err(e) => {
 					error!("{:?}", e);
 					*control = ControlFlow::Exit;
-				},
-				_ => {},
+				}
+				_ => {}
 			};
-		},
+		}
 		Event::RedrawEventsCleared => window.request_redraw(),
 		Event::WindowEvent {
 			window_id,
 			event: WindowEvent::CloseRequested,
 		} if window_id == window.id() => {
 			*control = ControlFlow::Exit;
-		},
-		_ => {},
+		}
+		_ => {}
 	})
 }
