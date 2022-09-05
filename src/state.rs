@@ -17,16 +17,16 @@ use crate::{blit, simulation, simulation::Agent};
 // TODO: merge into create_pipeline, create_texture
 // TODO: resize
 // TODO: load shaders instead of rebuild
-// TODO: json + save this config + github config
+// TODO: json
 // TODO: music
+// TODO: multiple types
 // TODO: modulo
 
-pub struct State<'a> {
+pub struct State {
 	surface: Surface,
 	device:  Device,
 	queue:   Queue,
 
-	texture_view_descriptor: TextureViewDescriptor<'a>,
 	extend_3d:               Extent3d,
 
 	compute_pipeline:   ComputePipeline,
@@ -43,8 +43,8 @@ pub struct State<'a> {
 	config: simulation::Config,
 }
 
-impl State<'_> {
-	pub async fn new<'a>(window: &window::Window) -> Result<State<'a>> {
+impl State {
+	pub async fn new(window: &window::Window) -> Result<State> {
 		let instance = Instance::new(Backends::VULKAN);
 
 		let surface = unsafe { instance.create_surface(window) };
@@ -272,7 +272,6 @@ impl State<'_> {
 			device,
 			queue,
 
-			texture_view_descriptor,
 			extend_3d,
 
 			compute_pipeline,
@@ -300,7 +299,7 @@ impl State<'_> {
 			.create_command_encoder(&command_encoder_descriptor);
 
 		let output = self.surface.get_current_texture()?;
-		let view = output.texture.create_view(&self.texture_view_descriptor);
+		let view = output.texture.create_view(&TextureViewDescriptor::default());
 
 		let compute_pass_descriptor = ComputePassDescriptor::default();
 		let mut compute_pass = encoder.begin_compute_pass(&compute_pass_descriptor);
