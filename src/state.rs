@@ -1,5 +1,3 @@
-use std::f32::consts::PI;
-
 use anyhow::*;
 use wgpu::{
 	util::{BufferInitDescriptor, DeviceExt},
@@ -7,27 +5,24 @@ use wgpu::{
 };
 use winit::*;
 
-use crate::{blit, simulation, simulation::Agent};
-
-// Possible improvements (need to be tested)
-// TODO: compute shader instead of fragment
-// TODO: replace texture copy with swap (requires both textures to be storage and render)
+use crate::{
+	blit, simulation,
+	simulation::{Agent, Config},
+};
 
 // TODO: bundle and reuse commands (do as little as possible in render)
 // TODO: merge into create_pipeline, create_texture
 // TODO: resize
-// TODO: load shaders instead of rebuild
-// TODO: json
 // TODO: music
 // TODO: multiple types
-// TODO: modulo
+// TODO: modulo, init config
 
 pub struct State {
 	surface: Surface,
 	device:  Device,
 	queue:   Queue,
 
-	extend_3d:               Extent3d,
+	extend_3d: Extent3d,
 
 	compute_pipeline:   ComputePipeline,
 	compute_bind_group: BindGroup,
@@ -44,7 +39,7 @@ pub struct State {
 }
 
 impl State {
-	pub async fn new(window: &window::Window) -> Result<State> {
+	pub async fn new(window: &window::Window, config: Config) -> Result<State> {
 		let instance = Instance::new(Backends::VULKAN);
 
 		let surface = unsafe { instance.create_surface(window) };
@@ -82,23 +77,7 @@ impl State {
 		// Simulation
 		////////////////////////////////////////////////////////////////////////////////////////////
 
-		let config = simulation::Config {
-			num_agents: 100000,
-
-			move_speed:             100.0,
-			turn_speed:             30.0,
-			sensor_angle:           PI / 4.0,
-			sensor_offset_distance: 15.0,
-			sensor_width:           2,
-
-			diffuse_rate: 40.0,
-			decay_rate:   0.6,
-
-			time:       0.0,
-			delta_time: 0.0,
-		};
-
-		let agents = Agent::generate_random(config.num_agents);
+		let agents = Agent::generate_random(config.num_agents,  window.inner_size().width, window.inner_size().height);
 
 		////////////////////////////////////////////////////////////////////////////////////////////
 		// Compute pipeline
@@ -299,7 +278,9 @@ impl State {
 			.create_command_encoder(&command_encoder_descriptor);
 
 		let output = self.surface.get_current_texture()?;
-		let view = output.texture.create_view(&TextureViewDescriptor::default());
+		let view = output
+			.texture
+			.create_view(&TextureViewDescriptor::default());
 
 		let compute_pass_descriptor = ComputePassDescriptor::default();
 		let mut compute_pass = encoder.begin_compute_pass(&compute_pass_descriptor);

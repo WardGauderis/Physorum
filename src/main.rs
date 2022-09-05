@@ -26,15 +26,15 @@ fn main() -> Result<()> {
 	let event_loop = event_loop::EventLoop::new();
 	let window = window::WindowBuilder::new()
 		.with_title("physarum")
-		.with_inner_size(dpi::PhysicalSize::new(settings.width, settings.height))
-		.with_fullscreen(if settings.fullscreen {
+		.with_inner_size(dpi::PhysicalSize::new(settings.display.width, settings.display.height))
+		.with_fullscreen(if settings.display.fullscreen {
 			Some(window::Fullscreen::Borderless(None))
 		} else {
 			None
 		})
 		.build(&event_loop)?;
 
-	let mut state = pollster::block_on(state::State::new(&window))?;
+	let mut state = pollster::block_on(state::State::new(&window, settings.into()))?;
 
 	let mut timer = Timer::new();
 

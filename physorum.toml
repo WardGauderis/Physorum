@@ -1,3 +1,16 @@
-width = 1920
-height = 1080
-fullscreen = false
+[display]
+width = 800
+height = 800
+fullscreen = true
+
+[simulation]
+num_agents = 100000
+
+move_speed = 100
+turn_speed = 30
+sensor_angle = 45
+sensor_offset = 15
+sensor_width = 2
+
+diffuse_rate = 40
+decay_rate = 0.6

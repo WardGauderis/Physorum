@@ -14,7 +14,7 @@ struct Config {
 	move_speed:             f32,
 	turn_speed:             f32,
 	sensor_angle:           f32,
-	sensor_offset_distance: f32,
+	sensor_offset: f32,
 	sensor_width:           i32,
 
 	diffuse_rate:           f32,
@@ -40,17 +40,25 @@ fn scale(state: u32) -> f32 {
     return f32(state) / 4294967295.0;
 }
 
-fn sense(position: vec2<f32>, angle: f32, sensor_angle: f32, config: Config, dimensions: vec2<f32>) -> f32 {
+fn modulo(a: vec2<i32>, b: vec2<i32>) -> vec2<i32> {
+    return ((a % b) + b) % b;
+}
+
+fn modulo_f32(a: vec2<f32>, b: vec2<f32>) -> vec2<f32> {
+    return ((a % b) + b) % b;
+}
+
+fn sense(position: vec2<f32>, angle: f32, sensor_angle: f32, config: Config, dimensions: vec2<i32>) -> f32 {
     let sensor_angle = angle + sensor_angle;
     let sensor_direction = vec2<f32>(cos(sensor_angle), sin(sensor_angle));
-    let sensor_center = position + sensor_direction * config.sensor_offset_distance;
+    let sensor_center = vec2<i32>(position + sensor_direction * config.sensor_offset);
 
     var sum = 0.0;
     for (var offset_x = - i32(config.sensor_width); offset_x <= config.sensor_width; offset_x++) {
         for (var offset_y = - i32(config.sensor_width); offset_y <= config.sensor_width; offset_y++) {
-		    let pos = clamp(sensor_center + vec2(f32(offset_x), f32(offset_y)), vec2(0.0), vec2(dimensions.x - 1.0, dimensions.y - 1.0));
-		    //let pos = sensor_center + vec2(f32(offset_x), f32(offset_y));
-			sum = sum + textureLoad(texture, vec2<i32>(pos)).r;
+//		    let pos = clamp(sensor_center + vec2(f32(offset_x), f32(offset_y)), vec2(0.0), vec2(dimensions.x - 1.0, dimensions.y - 1.0));
+		    let pos = modulo(sensor_center + vec2(offset_x, offset_y), dimensions);
+			sum = sum + textureLoad(texture, pos).r;
         }
     }
 
@@ -59,7 +67,7 @@ fn sense(position: vec2<f32>, angle: f32, sensor_angle: f32, config: Config, dim
 
 @compute @workgroup_size(64, 1, 1)
 fn main(@builtin(global_invocation_id) id: vec3<u32>) {
-    let dimensions = vec2<f32>(textureDimensions(texture));
+    let dimensions = textureDimensions(texture);
 
     if (id.x >= config.num_agents) {
       return;
@@ -68,7 +76,7 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
     var position = agents[id.x].position;
     var angle = agents[id.x].angle;
 
-    let random = hash(u32(position.y * dimensions.x + position.x) + hash(id.x + u32(config.time * 100000.0)));
+    let random = hash(u32(position.y * f32(dimensions.x) + position.x) + hash(id.x + u32(config.time * 100000.0)));
 
 	let f = sense(position, angle, 0.0, config, dimensions);
 	let fl = sense(position, angle, config.sensor_angle, config, dimensions);
@@ -90,13 +98,16 @@ fn main(@builtin(global_invocation_id) id: vec3<u32>) {
     let direction = vec2(cos(angle), sin(angle));
     position = position + direction * config.delta_time * config.move_speed;
 
-    if (position.x < 0.0 || position.x >= dimensions.x || position.y < 0.0 || position.y >= dimensions.y) {
-		let random = hash(random);
-		position = clamp(position, vec2(0.0, 0.0), vec2(dimensions.x - 1.0, dimensions.y - 1.0));
-		angle = scale(random) * 2.0 * 3.14159;
-	} else {
-	    textureStore(texture, vec2<i32>(position) , vec4(1.0, 1.0, 1.0, 1.0));
-	}
+    position = modulo_f32(position, vec2<f32>(dimensions));
+	textureStore(texture, vec2<i32>(position), vec4(1.0, 1.0, 1.0, 1.0));
+
+//    if (position.x < 0.0 || position.x >= dimensions.x || position.y < 0.0 || position.y >= dimensions.y) {
+//		let random = hash(random);
+//		position = clamp(position, vec2(0.0, 0.0), vec2(dimensions.x - 1.0, dimensions.y - 1.0));
+//		angle = scale(random) * 2.0 * 3.14159;
+//	} else {
+//	    textureStore(texture, vec2<i32>(position) , vec4(1.0, 1.0, 1.0, 1.0));
+//	}
 
     agents[id.x].position = position;
 	agents[id.x].angle = angle;
